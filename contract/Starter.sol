@@ -7,9 +7,9 @@ contract Voting {
     HonkVerifier public verifier;
     bytes32 public root;
     mapping (uint256 => Proposal) public proposals;
-    constructor(bytes32 _root,address _verifier) {
+    constructor(bytes32 _root, HonkVerifier _verifier) {
         proposalCount = 0;
-        verifier = HonkVerifier(_verifier);
+        verifier = _verifier;
         root = _root;
     } 
     struct Proposal {
@@ -31,11 +31,9 @@ contract Voting {
         proposalCount++;
         return proposalCount-1;
     }
-    function castVote( bytes memory proof,uint256 proposalId,uint256 vote) public {
+    function castVote( bytes memory proof,uint256 proposalId,uint256 vote, bytes32[] memory publicInputs) public {
 
-        bytes32[] memory publicInputs = new bytes32[](1);
-        publicInputs[0] = root;
-        require(verifier.verify(proof,publicInputs));
+        require(verifier.verify(proof,publicInputs),"Invalid proof");
         if(vote==1){
             proposals[proposalId].forVote++;
         }else{

@@ -4,7 +4,6 @@ pragma solidity ^0.8.25;
 import { TestBase, Vm } from "forge-std/Base.sol";
 import { console2 as console } from "forge-std/console2.sol";
 import {LibString} from "solady/utils/LibString.sol";
-
 contract NoirHelper is TestBase {
     using LibString for string;
 
@@ -475,7 +474,7 @@ contract NoirHelper is TestBase {
     ) 
         internal
         returns (bytes32[] memory, bytes memory) 
-    {
+    {       
 
         string memory witnessName = proverName;
         string memory proofName = string.concat(proverName, ".proof");

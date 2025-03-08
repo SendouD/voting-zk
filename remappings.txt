@@ -1,0 +1,1 @@
+foundry-noir-helper/=lib/foundry-noir-helper/src/

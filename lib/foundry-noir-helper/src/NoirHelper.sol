@@ -27,6 +27,7 @@ contract NoirHelper is TestBase {
     string constant INPUT_KEY = "input key";
 
     string public circuitProjectPath = "./circuits";
+    string public proofOutlocation = "";
 
     CircuitInput public inputs;
 
@@ -318,6 +319,11 @@ contract NoirHelper is TestBase {
         return this;
     }
 
+    function withProofOutputPath(string memory path) public returns (NoirHelper){
+        proofOutlocation = path;
+        return this;
+    }
+
     function useName(string memory circuitName) 
         internal
         view
@@ -515,9 +521,20 @@ contract NoirHelper is TestBase {
             }
         }
 
-        string memory proofLocation = string.concat(circuitProjectPath, "/target/", proofName);
+        string memory proofLocation = string.concat(circuitProjectPath, "/target");
 
-        vm.copyFile(string.concat(newCircuitProjectPath, "/target/", proofName), proofLocation);
+        {
+            if(!proofOutlocation.eqs("")){
+                proofLocation = proofOutlocation;
+            }
+            if(!vm.exists(proofLocation)){
+                vm.createDir(proofLocation, false);
+            }
+        }
+
+        proofLocation = string.concat(proofLocation, "/", proofName);
+
+        vm.writeFileBinary(proofLocation, vm.readFileBinary(string.concat(newCircuitProjectPath, "/target/", proofName)));
         
         vm.removeDir(newCircuitProjectPath, true);
 
@@ -548,8 +565,7 @@ contract NoirHelper is TestBase {
         PlonkFlavour flavour
     ) internal returns(Vm.FfiResult memory, string memory){
         string memory newCircuitProjectPath = string.concat(circuitProjectPath, "/../", "__tmp__", proverName);
-        string memory newCircuitCmd = string.concat("nargo new ", newCircuitProjectPath);
-        string memory copyCircuitCmd = string.concat("cp -r -f ", circuitProjectPath, "/ ", newCircuitProjectPath, "/");
+        string memory copyCircuitCmd = string.concat("cp -r ", circuitProjectPath, "/ ", newCircuitProjectPath, "/");
 
         string memory dirCmd = string.concat("cd ", newCircuitProjectPath);
         string memory executeCmd = string.concat("nargo execute -p ", proverName, " ", witnessName);
@@ -569,7 +585,6 @@ contract NoirHelper is TestBase {
         ffi_cmds[0] = "bash";
         ffi_cmds[1] = "-c";
         ffi_cmds[2] = string.concat(
-            newCircuitCmd, " && ",
             copyCircuitCmd, " && ",
             dirCmd, " && ",
             executeCmd, " && ",
